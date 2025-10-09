@@ -7,6 +7,7 @@ import FilmDetails from "./pages/FilmDetails";
 import ActorsPage from "./pages/ActorsPage";
 import ActorDetails from "./pages/ActorDetails";
 import CustomersPage from "./pages/CustomersPage";
+import CustomerDetails from "./pages/CustomerDetails";
 
 export default function App(){
   return (
@@ -20,6 +21,7 @@ export default function App(){
           <Route path="/actors" element={<ActorsPage />} />
           <Route path="/actors/:id" element={<ActorDetails />} />
           <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/customers/:id" element={<CustomerDetails />} />
         </Routes>
       </div>
     </BrowserRouter>
