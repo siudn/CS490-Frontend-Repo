@@ -8,6 +8,7 @@ export default function CustomerDetails(){
 
   const [countries, setCountries] = React.useState([]);
   const [form, setForm] = React.useState(null);
+  const [rentals, setRentals] = React.useState({ open: [], returned: [] });
   const on = (k,v)=>setForm(s=>({...s,[k]:v}));
 
   React.useEffect(()=>{
@@ -21,7 +22,14 @@ export default function CustomerDetails(){
         city:j.city||"", city_id:j.city_id||"", country_id:j.country_id||""
       });
     });
+    loadRentals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[id]);
+
+  async function loadRentals(){
+    const r = await fetch(`${API}/api/customers/${id}/rentals`);
+    if(r.ok) setRentals(await r.json());
+  }
 
   async function save(){
     const res = await fetch(`${API}/api/customers/${id}`, {
@@ -30,10 +38,16 @@ export default function CustomerDetails(){
     });
     alert(res.ok ? "Updated" : "Update failed");
   }
+
   async function remove(){
     if(!confirm(`Delete customer #${id}? This removes rentals/payments.`)) return;
     const res = await fetch(`${API}/api/customers/${id}`, { method:"DELETE" });
     if(res.ok){ alert("Deleted"); nav("/customers"); } else alert("Delete failed"); 
+  }
+
+  async function markReturned(rentalId){
+    const r = await fetch(`${API}/api/rentals/${rentalId}/return`, { method:"POST" });
+    if(r.ok){ await loadRentals(); } else { alert("No open rental for that ID"); }
   }
 
   if(!form) return <div className="container"><p className="loading">Loading…</p></div>;
@@ -61,6 +75,39 @@ export default function CustomerDetails(){
           <button className="btn" onClick={save}>Save</button>
           <button className="btn" style={{background:"#b33"}} onClick={remove}>Delete</button>
         </div>
+      </div>
+      <div className="section">
+        <h3 className="meta" style={{marginBottom:8}}>Open Rentals</h3>
+        {rentals.open.length === 0 ? <p className="meta">None</p> :
+          <div className="grid">
+            {rentals.open.map(r => (
+              <div key={r.rental_id} className="card">
+                <h3>{r.title}</h3>
+                <div className="meta">Rental ID: {r.rental_id}</div>
+                <div className="meta">Rented: {new Date(r.rental_date).toLocaleString()}</div>
+                <div className="btnrow" style={{marginTop:8}}>
+                  <button className="btn" onClick={()=>markReturned(r.rental_id)}>Mark Returned</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      </div>
+
+      <div className="section">
+        <h3 className="meta" style={{marginBottom:8}}>Returned Rentals</h3>
+        {rentals.returned.length === 0 ? <p className="meta">None</p> :
+          <div className="grid">
+            {rentals.returned.map(r => (
+              <div key={r.rental_id} className="card">
+                <h3>{r.title}</h3>
+                <div className="meta">Rental ID: {r.rental_id}</div>
+                <div className="meta">Rented: {new Date(r.rental_date).toLocaleString()}</div>
+                <div className="meta">Returned: {new Date(r.return_date).toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        }
       </div>
     </div>
   );
